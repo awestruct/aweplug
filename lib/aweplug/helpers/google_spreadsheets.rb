@@ -35,7 +35,7 @@ module Aweplug
         end
 
         def by_col row_labels: false, col_labels: false
-          data = by do |res, col, row, content|
+          res = by do |res, col, row, content|
             res[col] ||= {}
             res[col][row] = content
           end
@@ -174,7 +174,7 @@ module Aweplug
       def get path, params = {}
         response = @faraday.get URI.escape("#{path}/#{@authenticate ? 'private' : 'public'}/full"), params
         unless response.success?
-          raise "Error loading spreadsheet at #{path}"
+          raise "#{response.status} loading spreadsheet at #{path}."
         end
         if response.body.include? "<!DOCTYPE html>"
           raise "#{path} is not public, either enable authentication or publish the spreadsheet to the web"
