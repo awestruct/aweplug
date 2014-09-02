@@ -1,7 +1,6 @@
-- page.video_iframe_url = "//player.vimeo.com/video/#{video.id}?title=0&byline=0&portrait=0&badge=0&color=2664A2"
 - page.video_height = 500
 - page.video_width = 313
-- page.video_duration_in_seconds = video.duration_in_seconds
+- page.video_duration_in_seconds = video.duration.total
 - page.published_date = video.upload_date_iso8601
 - page.image ||= video.thumb_url
 div(itemprop="video" itemscope itemtype="http://schema.org/VideoObject" data-searchisko-type="jbossdeveloper_vimeo" data-searchisko-id="#{video.id}")
@@ -11,12 +10,12 @@ div(itemprop="video" itemscope itemtype="http://schema.org/VideoObject" data-sea
   meta itemprop="width" content="#{video.width}"
   h4 itemprop="name" #{video.title}
   / TODO Add more metadata
-  meta itemprop="duration" content="#{page.video_duration}"
+  meta itemprop="duration" content="#{video.duration.iso8601}"
   meta itemprop="thumbnailUrl" content="#{page.image}"
   meta itemprop="thumbnail" content="#{page.image}"
   meta itemprop="uploadDate" content="#{page.published_date}"
   meta itemProp="isFamilyFriendly" content="true"
-  .flex-video(widescreen vimeo)
-    iframe(src="#{page.video_iframe_url}" width="#{page.video_height}" height="#{page.video_width}" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen)
+  .flex-video
+    = video.embed '2664A2', page.video_width, page.video_height
   span.contributors
 
