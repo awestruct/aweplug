@@ -1,3 +1,4 @@
+require 'active_support'
 require 'parallel'
 require 'aweplug/helpers/video'
 require 'aweplug/helpers/searchisko'
