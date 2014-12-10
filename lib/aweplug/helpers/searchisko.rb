@@ -167,10 +167,11 @@ module Aweplug
           req.headers['Content-Type'] = 'application/json'
           if params.is_a? Hash
             ENV["SEARCHISKO_DATA_ORIGIN"] ||= "build from #{ENV['USERNAME'] || ENV['USER']}"
-            req.body = params.merge({:data_origin => ENV["SEARCHISKO_DATA_ORIGIN"]})
+            params = params.merge({:data_origin => ENV["SEARCHISKO_DATA_ORIGIN"]})
           else
             puts "WARNING: params is not a Hash"
           end
+          req.body = params.to_json
           if @logger
             @logger.debug "request body: #{req.body}"
           end
