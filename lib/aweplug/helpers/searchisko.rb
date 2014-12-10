@@ -165,7 +165,12 @@ module Aweplug
         resp = @faraday.post do |req|
           req.url "/v1/rest/" + path
           req.headers['Content-Type'] = 'application/json'
-          req.body = params
+          if params.is_a? Hash
+            ENV["SEARCHISKO_DATA_ORIGIN"] ||= "build from #{ENV['USERNAME'] || ENV['USER']}"
+            req.body = params.merge({:data_origin => ENV["SEARCHISKO_DATA_ORIGIN"]})
+          else
+            puts "WARNING: params is not a Hash"
+          end
           if @logger
             @logger.debug "request body: #{req.body}"
           end
