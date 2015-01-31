@@ -5,6 +5,7 @@ require 'faraday'
 require 'faraday_middleware' 
 require 'logger'
 require 'aweplug/cache'
+require 'aweplug/helpers/faraday'
 
 module Aweplug
   module Helpers
@@ -107,27 +108,21 @@ module Aweplug
         @site = site
         @authenticate = authenticate
 
-        Aweplug::Cache.default site
+        cache = Aweplug::Cache.default site
+        if (logger) 
+          if (logger.is_a?(::Logger))
+            @logger = logger
+          else 
+            ::Logger.new('_tmp/faraday.log', 'daily')
+          end
+        end
 
-        @faraday = Faraday.new(:url => BASE_URL) do |builder|
-          if authenticate
-            oauth2_client = client_signet
-            builder.use FaradayMiddleware::OAuth2, oauth2_client.access_token
-          end
-          if (logger) 
-            if (logger.is_a?(::Logger))
-              builder.response :logger, @logger = logger
-            else 
-              builder.response :logger, @logger = ::Logger.new('_tmp/faraday.log', 'daily')
-            end
-          end
-          builder.request :url_encoded
-          builder.request :retry
-          builder.response :raise_error if raise_error
-          builder.use FaradayMiddleware::FollowRedirects
-          builder.use FaradayMiddleware::Caching, Aweplug::Cache.default(site), {}
-          #builder.response :json, :content_type => /\bjson$/
-          builder.adapter adapter || :net_http
+        @faraday = Aweplug::Helpers::FaradayHelper.default BASE_URL, {:cache => cache, :logger => @logger}
+        faraday_builder = @faraday.builder
+        
+        if authenticate
+          oauth2_client = client_signet
+          faraday_builder.use FaradayMiddleware::OAuth2, oauth2_client.access_token
         end
       end
 
