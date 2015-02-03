@@ -1,6 +1,5 @@
-require 'faraday'
-require 'faraday_middleware' 
 require 'aweplug/cache'
+require 'aweplug/helpers/faraday'
 require 'logger'
 require 'json'
 require 'uri'
@@ -61,23 +60,17 @@ module Aweplug
         unless [:searchisko_username, :searchisko_password].all? {|required| opts.key? required}
           raise 'Missing searchisko credentials'
         end
-        @faraday = Faraday.new(:url => opts[:base_url]) do |builder|
-          builder.request :basic_auth, opts[:searchisko_username], opts[:searchisko_password]
-          if (opts[:logger]) 
-            if (opts[:logger].is_a?(::Logger))
-              builder.response :logger, @logger = opts[:logger]
-            else 
-              builder.response :logger, @logger = ::Logger.new('_tmp/faraday.log', 'daily')
-            end
+
+        if (opts[:logger]) 
+          if (opts[:logger].is_a?(::Logger))
+            @logger = opts[:logger]
+          else 
+            @logger = ::Logger.new('_tmp/faraday.log', 'daily')
           end
-          builder.request :url_encoded
-          builder.request :retry
-          builder.response :raise_error if opts[:raise_error]
-          builder.use FaradayMiddleware::Caching, opts[:cache], {}
-          builder.use FaradayMiddleware::FollowRedirects
-          #builder.response :json, :content_type => /\bjson$/
-          builder.adapter opts[:adapter] || :net_http
         end
+
+        @faraday = Aweplug::Helpers::FaradayHelper.default(opts[:base_url], {:cache => opts[:cache], :logger => @logger})
+        @faraday.basic_auth opts[:searchisko_username], opts[:searchisko_password]
         @cache = opts[:cache]
         @searchisko_warnings = opts[:searchisko_warnings] if opts.has_key? :searchisko_warnings
       end

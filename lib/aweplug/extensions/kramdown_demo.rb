@@ -4,6 +4,7 @@ require 'json'
 require 'kramdown'
 require 'aweplug/helpers/kramdown_metadata'
 require 'aweplug/helpers/searchisko'
+require 'aweplug/helpers/faraday'
 require 'yaml'
 require 'aweplug/handlers/synthetic_handler'
 require 'awestruct/page'
@@ -177,18 +178,15 @@ module Aweplug
         end
 
         def init_faraday site
-          @faraday ||= Faraday.new do |builder|
+          unless site.log_faraday
             if (site.log_faraday.is_a?(::Logger))
-              builder.response :logger, @logger = site.log_faraday
+              @logger = site.log_faraday
             else 
-              builder.response :logger, @logger = ::Logger.new('_tmp/faraday.log', 'daily')
+              @logger = ::Logger.new('_tmp/faraday.log', 'daily')
             end
-            builder.request :url_encoded
-            builder.request :retry
-            builder.use FaradayMiddleware::Caching, @cache, {}
-            builder.use FaradayMiddleware::FollowRedirects, limit: 3
-            builder.adapter Faraday.default_adapter 
           end
+
+          @faraday ||= Aweplug::Helpers::FaradayHelper.default({:cache => @cache, :logger => @logger})
         end
 
         def from_yaml url

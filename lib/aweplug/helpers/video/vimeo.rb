@@ -1,12 +1,11 @@
 require 'oauth'
 require 'aweplug/cache'
+require 'aweplug/helpers/faraday'
 require 'aweplug/helpers/video/vimeo_video'
 require 'aweplug/helpers/searchisko_social'
 require 'aweplug/helpers/video/helpers'
 require 'tilt'
 require 'yaml'
-require 'faraday'
-require 'faraday_middleware'
 
 module Aweplug
   module Helpers
@@ -21,23 +20,16 @@ module Aweplug
           @site = site
 
           cache = Aweplug::Cache.default @site, default_ttl
-
-          @faraday = Faraday.new(:url => BASE_URL) do |builder|
-            if (logger) 
-              if (logger.is_a?(::Logger))
-                builder.response :logger, @logger = logger
-              else 
-                builder.response :logger, @logger = ::Logger.new('_tmp/faraday.log', 'daily')
-              end
+          if (logger) 
+            if (logger.is_a?(::Logger))
+              @logger = logger
+            else 
+              @logger = ::Logger.new('_tmp/faraday.log', 'daily')
             end
-            builder.request :url_encoded
-            builder.request :retry
-            builder.response :gzip
-            builder.request :authorization, 'bearer', ENV['vimeo_access_token']
-            builder.use FaradayMiddleware::FollowRedirects
-            builder.use FaradayMiddleware::Caching, cache, {}
-            builder.adapter adapter || :net_http
           end
+
+          @faraday = Aweplug::Helpers::FaradayHelper.default(BASE_URL, {:cache => cache, :logger => @logger})
+          @faraday.authorization 'bearer', ENV['vimeo_access_token']
         end
 
         def add(url, product: nil, push_to_searchisko: true)

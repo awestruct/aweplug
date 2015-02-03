@@ -8,7 +8,7 @@ module Aweplug
     class FaradayHelper
       # Public: Returns a basic Faraday connection using options passed in
       #
-      # url:  Required url (String or URI) for the base of the full URL.
+      # url:  URL (String or URI) for the base of the full URL.
       # opts: Hash of options to use.
       #       :logger - Logger to use, if none is provided a default is used.
       #       :cache - Optional cache to use.
@@ -16,19 +16,25 @@ module Aweplug
       #       :adapter - Faraday Adapter to use, :net_http by default.
       #
       # Returns a configured Faraday connection.
-      def self.default url, opts = {} 
+      def self.default url = nil, opts = {} 
         logger = opts[:logger] || Logger.new('_tmp/faraday.log', 'daily')
 
-        conn = Faraday.new(url: url) do |builder|
+        conn = Faraday.new do |builder|
           builder.response :logger, @logger = logger
           unless opts[:no_cache]
             builder.use FaradayMiddleware::Caching, (opts[:cache] || Aweplug::Cache::FileCache.new), {} 
           end
-          builder.adapter (opts[:adapter] ||:net_http)
+          builder.request :retry
+          builder.request :url_encoded
+          builder.request :retry
+          builder.response :raise_error
+          builder.response :gzip
           builder.options.params_encoder = Faraday::FlatParamsEncoder
-          builder.use FaradayMiddleware::FollowRedirects
+          builder.use FaradayMiddleware::FollowRedirects, limit: 3
           builder.ssl.verify = true
+          builder.adapter (opts[:adapter] ||:net_http)
         end 
+        conn.url_prefix = url if (url.is_a?(String) || url.is_a?(URI))
         conn
       end
     end
