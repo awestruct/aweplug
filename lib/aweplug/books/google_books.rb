@@ -51,12 +51,12 @@ module Aweplug
       end
 
       def get data
+        env_param = {
+            :q => "isbn:#{data['isbn']}"}
+        env_param.merge!(:country => ENV['COUNTRY_CODE']) if ENV['COUNTRY_CODE']
         res = @client.execute!(
           :api_method => @books.volumes.list,
-          :parameters => {
-            :q => "isbn:#{data['isbn']}",
-            :country => "SG"
-          }
+          :parameters => env_param
         )
         if res.success?
           books = JSON.load(res.body)
@@ -85,7 +85,7 @@ module Aweplug
           unless required_keys.all? {|key| book['volumeInfo'].key? key}
             isbn = isbn_13(book) || data['isbn']
             puts "book: #{isbn} missing required attributes: #{required_keys - book['volumeInfo'].keys}"
-            return nil 
+            return nil
           end
 
           unless book.nil?
@@ -96,7 +96,7 @@ module Aweplug
               thumbnail = book['volumeInfo']['imageLinks']['thumbnail']
             else
               thumbnail = cdn("#{@site.base_url}/images/books/book_noimageavailable.jpg")
-            end 
+            end
 
             normalized_authors = book['volumeInfo'].has_key?('authors') ? book['volumeInfo']['authors'].collect { |a| normalize 'contributor_profile_by_jbossdeveloper_quickstart_author', a, @searchisko } : []
             unless book['volumeInfo']['publishedDate'].nil?
@@ -136,8 +136,8 @@ module Aweplug
 
       def send_to_searchisko book
         unless !@push_to_searchisko || @site.profile =~ /development/
-          @searchisko.push_content('jbossdeveloper_book', 
-                                 book[:isbn], 
+          @searchisko.push_content('jbossdeveloper_book',
+                                 book[:isbn],
                                  book.reject {|k, v| k == :normalized_authors }.to_json)
         end
       end
@@ -169,7 +169,7 @@ module Aweplug
             return ids['OTHER']
           end
         end
-        nil 
+        nil
       end
 
     end
