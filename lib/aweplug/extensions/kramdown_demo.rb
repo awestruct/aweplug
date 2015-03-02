@@ -216,7 +216,7 @@ module Aweplug
           metadata[:id] ||= metadata[:github_repo]
           metadata[:github_repo_url] ||= "http://github.com/#{metadata[:github_org]}/#{metadata[:github_repo]}"
           if metadata[:content].nil?
-            metadata[:content] ||= "https://api.github.com/repos/#{metadata[:github_org]}/#{metadata[:github_repo]}/readme"
+            metadata[:content] ||= "https://api.github.com/repos/#{metadata[:github_org]}/#{metadata[:github_repo]}/readme?access_token="+ ENV['github_token']
             raw = Base64.decode64(JSON.load(@faraday.get(metadata[:content]).body)['content'])
           else
             raw = @faraday.get(metadata[:content]).body
@@ -229,7 +229,7 @@ module Aweplug
               tag = $5
             end
             base_download_url = "https://api.github.com/repos/#{download_org || metadata[:github_org]}/#{download_repo || metadata[:github_repo]}"
-            releases = JSON.load(@faraday.get("#{base_download_url}/releases").body)
+            releases = JSON.load(@faraday.get("#{base_download_url}/releases?access_token=" + ENV['github_token']).body)
 
             # Find the tagged release
             release = releases.find {|r| r['tag_name'] == tag} unless tag.nil?
@@ -252,7 +252,7 @@ module Aweplug
             end
           end
           unless metadata.has_key?(:author) && metadata.has_key?(:contributors)
-            commits = JSON.load(@faraday.get("https://api.github.com/repos/#{metadata[:github_org]}/#{metadata[:github_repo]}/commits").body)
+            commits = JSON.load(@faraday.get("https://api.github.com/repos/#{metadata[:github_org]}/#{metadata[:github_repo]}/commits?access_token="+ ENV['github_token']).body)
             a = commits.collect { |c| c['author'].nil? ? nil : c['author']['login'] }
             b = a.inject(Hash.new(0)) { |r, l| r[l] += 1; r }
             contributors = commits.collect { |c| c['author'].nil? ? nil : c['author']['login'] }.inject(Hash.new(0)) { |r, l| r[l] += 1; r }.sort_by{ |l,c| -c}.collect{ |(k,v)| k }.reject{ |l| l.nil? }
