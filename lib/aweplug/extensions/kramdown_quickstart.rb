@@ -157,7 +157,12 @@ module Aweplug
             :sys_activity_dates => metadata[:commits].collect { |c| DateTime.parse c[:date] },
             :target_product => metadata[:target_product],
             :github_repo_url => metadata[:github_repo_url],
-            :experimental => metadata[:experimental]
+            :experimental => metadata[:experimental],
+            :prerequisites => metadata[:prereq],
+            :quickstart_id => metadata[:title],
+            :git_tag => metadata[:current_tag],
+            :git_commit => metadata[:commits].collect { |c| c[:hash] }.first
+
           } 
 
           searchisko.push_content(metadata[:searchisko_type], 
