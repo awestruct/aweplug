@@ -230,6 +230,7 @@ module Aweplug
             end
             base_download_url = "https://api.github.com/repos/#{download_org || metadata[:github_org]}/#{download_repo || metadata[:github_repo]}"
             releases = JSON.load(@faraday.get("#{base_download_url}/releases?access_token=" + ENV['github_token']).body)
+
             # Find the tagged release
             release = releases.find {|r| r['tag_name'] == tag} unless tag.nil?
             # If no tag, or not gound, find the first non prerelease
