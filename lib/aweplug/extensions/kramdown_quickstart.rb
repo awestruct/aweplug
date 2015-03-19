@@ -16,9 +16,9 @@ module Aweplug
     module Kramdown
       # Public: An awestruct extension for guides / examples written in AsciiDoc.
       #         Files with the .asciidoc or .adoc extension are considered to be
-      #         AsciiDoc files. This extension makes use of asciidoctor to 
-      #         render the files. This makes use of the 
-      #         Aweplug::Helper::Searchisko class, please see that class for 
+      #         AsciiDoc files. This extension makes use of asciidoctor to
+      #         render the files. This makes use of the
+      #         Aweplug::Helper::Searchisko class, please see that class for
       #         more info on options and settings for Searchisko.
       #
       # Example
@@ -31,25 +31,25 @@ module Aweplug
 
         # Public: Initialization method, used in the awestruct pipeline.
         #
-        # opts - A Hash of options, some being required, some not (default: {}). 
-        #        :repository         - The String name of the directory containing 
+        # opts - A Hash of options, some being required, some not (default: {}).
+        #        :repository         - The String name of the directory containing
         #                              the repository (required).
-        #        :layout             - The String name of the layout to use, 
+        #        :layout             - The String name of the layout to use,
         #                              omitting the extension (required).
-        #        :output_dir         - The String or Pathname of the output 
+        #        :output_dir         - The String or Pathname of the output
         #                              directory for the files (required).
         #        :site_variable      - String name of the key within the site
-        #                              containing additional metadata about 
-        #                              the guide (default: value of 
+        #                              containing additional metadata about
+        #                              the guide (default: value of
         #                              :output_dir).
-        #        :excludes           - Array of Strings containing additional 
+        #        :excludes           - Array of Strings containing additional
         #                              directory names to exclude. Defaults to [].
         #        :push_to_searchisko - A boolean controlling whether a push to
         #                              seachisko should happen. A push will not
         #                              happen when the development profile is in
-        #                              use, regardless of the value of this 
+        #                              use, regardless of the value of this
         #                              option.
-        #        :experimental       - Boolean to flag quickstarts as 
+        #        :experimental       - Boolean to flag quickstarts as
         #                              experimental.
         # Returns the created extension.
         def initialize opts = {}
@@ -77,17 +77,17 @@ module Aweplug
           cache = Aweplug::Cache.default site # default cache shouldn't matter here
 
           Parallel.each(Dir["#{@repo}/*/README.md"], :in_threads => (site.build_threads || 0)) do |file|
-            searchisko = Aweplug::Helpers::Searchisko.new({:base_url => site.dcp_base_url, 
-                                                           :authenticate => true, 
-                                                           :searchisko_username => ENV['dcp_user'], 
-                                                           :searchisko_password => ENV['dcp_password'], 
+            searchisko = Aweplug::Helpers::Searchisko.new({:base_url => site.dcp_base_url,
+                                                           :authenticate => true,
+                                                           :searchisko_username => ENV['dcp_user'],
+                                                           :searchisko_password => ENV['dcp_password'],
                                                            :cache => cache,
                                                            :logger => site.log_faraday,
                                                            :searchisko_warnings => site.searchisko_warnings})
             next if @excludes.include?(File.dirname(file))
 
             # Skip if the site already has this page
-            output_path = File.join @output_dir, Pathname.new(file).relative_path_from(Pathname.new @repo).dirname, 'index.html' 
+            output_path = File.join @output_dir, Pathname.new(file).relative_path_from(Pathname.new @repo).dirname, 'index.html'
             next if site.pages.find {|p| p.output_path == output_path}
 
             page = add_to_site site, file
@@ -104,10 +104,12 @@ module Aweplug
 
             unless metadata[:images].empty?
               metadata[:images].each do |img|
-                image_path = Pathname.new(@repo).join(img) 
+                image_path = Pathname.new(@repo).join(img)
                 add_image_to_site(site, image_path) if File.exist? image_path
               end
-            end 
+            end
+
+            send_to_searchisko(searchisko, metadata, page, site, converted_html)
 
             unless !@push_to_searchisko || site.profile =~ /development/
               send_to_searchisko(searchisko, metadata, page, site, converted_html)
@@ -130,7 +132,7 @@ module Aweplug
             site.dev_mat_techs << metadata[:technologies].flatten
           end
 
-          add_main_readme(site) 
+          add_main_readme(site)
           add_contributing(site)
         end
 
@@ -145,11 +147,11 @@ module Aweplug
           metadata[:searchisko_type] = 'jbossdeveloper_quickstart'
 
           searchisko_hash = {
-            :sys_title => metadata[:title], 
+            :sys_title => metadata[:title],
             :level => metadata[:level],
             :tags => metadata[:technologies],
             :sys_description => metadata[:summary],
-            :sys_content => converted_html, 
+            :sys_content => converted_html,
             :sys_url_view => "#{site.base_url}#{site.ctx_root.nil? ? '/' : '/' + site.ctx_root + '/'}#{page.output_path}",
             :contributors => metadata[:contributors_email],
             :author => metadata[:author],
@@ -157,12 +159,25 @@ module Aweplug
             :sys_activity_dates => metadata[:commits].collect { |c| DateTime.parse c[:date] },
             :target_product => metadata[:target_product],
             :github_repo_url => metadata[:github_repo_url],
-            :experimental => metadata[:experimental]
-          } 
+            :experimental => metadata[:experimental],
+            :prerequisites => metadata[:prereq],
+            :quickstart_id => metadata[:title],
+            :git_tag => metadata[:current_tag],
+            :git_commit => metadata[:commits].collect { |c| c[:hash] }.first
 
-          searchisko.push_content(metadata[:searchisko_type], 
-                                    metadata[:searchisko_id], 
-                                    searchisko_hash.to_json)
+          }
+          if(metadata[:summary].eql? "Shows how to use the H2 console with JBoss EAP")
+            File.open('/Users/danielcoughlin/Documents/output.json', 'w') do |f2|
+              # use "\n" for two lines of text
+              f2.puts(metadata.to_json.to_s)
+              f2.puts(searchisko_hash.to_json)
+
+            end
+          end
+
+          # searchisko.push_content(metadata[:searchisko_type],
+          #                           metadata[:searchisko_id],
+          #                           searchisko_hash.to_json)
         end
 
         # Private: Adds the contributing page of the repository to the site.
@@ -188,16 +203,16 @@ module Aweplug
           end
         end
 
-        # Private: Makes use of the sepcial Kramdown parser in aweplug to pull 
+        # Private: Makes use of the sepcial Kramdown parser in aweplug to pull
         # out metadata from the README files.
-        # 
+        #
         # file - The String file path (relative or absolute) to parse.
         #
         # Returns a Hash of the metadata retrieved.
         def extract_metadata(file)
           document = parse_kramdown(file)
           toc = ::Kramdown::Converter::Toc.convert(document.root)
-          toc_items = toc[0].children.select { |el| el.value.options[:level] == 2 }.map do |t| 
+          toc_items = toc[0].children.select { |el| el.value.options[:level] == 2 }.map do |t|
             {:id => t.attr[:id], :text => t.value.children.first.value}
           end
 
@@ -238,13 +253,13 @@ module Aweplug
             images << el.attr['src']
           end
           images
-        end 
+        end
 
         # Private: Adds the Page to the site.
         #
         # site - The Site from awestruct.
         # file - The String file path (relative or absolute) to parse.
-        # 
+        #
         # Returns the newly constructed Page
         def add_to_site(site, file)
           page_path = Pathname.new file
@@ -274,7 +289,7 @@ module Aweplug
         #
         # Returns the parsed Kramdown Document.
         def parse_kramdown(file)
-          ::Kramdown::Document.new File.readlines(file).join, :input => 'QuickStartParser' 
+          ::Kramdown::Document.new File.readlines(file).join, :input => 'QuickStartParser'
         end
       end
     end
