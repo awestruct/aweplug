@@ -74,6 +74,7 @@ module Aweplug
           builder.request :retry
           builder.response :raise_error if opts[:raise_error]
           builder.use FaradayMiddleware::Caching, opts[:cache], {}
+          builder.use FaradayMiddleware::FollowRedirects
           #builder.response :json, :content_type => /\bjson$/
           builder.adapter opts[:adapter] || :net_http
         end
@@ -152,6 +153,25 @@ module Aweplug
         post "/content/#{content_type}/#{content_id}", params
       end
 
+      # Public: Posts bulk content to Searchisko. See 
+      # http://docs.jbossorg.apiary.io/#post-%2Fv2%2Frest%2Fcontent%2F%7Bsys_content_type%7D
+      # for more information.
+      #
+      # content_type - String of the Searchisko sys_content_type for the content 
+      #                being posted.
+      # params       - Hash containing the content to push. Ids of each value
+      #                must be the key in the hash.
+      #
+      # Examples
+      #
+      #   searchisko.push_bulk_content 'jbossdeveloper_bom', content_hash
+      #   # => Faraday Response
+      #
+      # Returns a Faraday Response from the POST.
+      def push_bulk_content content_type, content = {}
+        post "/content/#{content_type}", content
+      end
+
       # Public: Perform an HTTP POST to Searchisko.
       #
       # path   - String containing the rest of the path.
@@ -167,11 +187,11 @@ module Aweplug
           req.headers['Content-Type'] = 'application/json'
           if params.is_a? Hash
             ENV["SEARCHISKO_DATA_ORIGIN"] ||= "build from #{ENV['USERNAME'] || ENV['USER']}"
-            params = params.merge({:data_origin => ENV["SEARCHISKO_DATA_ORIGIN"]})
+            req.body = params.merge({:data_origin => ENV["SEARCHISKO_DATA_ORIGIN"]}).to_json
           else
-            puts "WARNING: params is not a Hash"
+            puts "WARNING: params is not a Hash, cannot add searchisko origin data"
+            req.body = params.to_json
           end
-          req.body = params.to_json
           if @logger
             @logger.debug "request body: #{req.body}"
           end

@@ -33,7 +33,7 @@ module Aweplug
             builder.request :url_encoded
             builder.request :retry
             builder.response :gzip
-            builder.request :authorization, 'bearer', ENV['vimeo_access_token']
+            builder.authorization 'bearer', ENV['vimeo_access_token']
             builder.use FaradayMiddleware::FollowRedirects
             builder.use FaradayMiddleware::Caching, cache, {}
             builder.adapter adapter || :net_http
@@ -83,7 +83,13 @@ module Aweplug
         private
         
         def _add video, data, product, push_to_searchisko
-          add_video(Aweplug::Helpers::Video::VimeoVideo.new(video, data, @site), product, push_to_searchisko)
+          if @site.videos[video["link"]]
+            video = @site.videos[video["link"]]
+            video.add_target_product product
+            video
+          else
+            add_video(Aweplug::Helpers::Video::VimeoVideo.new(video, data, @site), product, push_to_searchisko)
+          end
         end
 
       end
