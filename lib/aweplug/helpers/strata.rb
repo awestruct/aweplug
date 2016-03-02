@@ -5,6 +5,7 @@ require 'aweplug/helpers/searchisko'
 require 'aweplug/helpers/faraday'
 require 'aweplug/cache'
 require 'parallel'
+require 'fileutils'
 
 module Aweplug
   module Helpers
@@ -12,6 +13,10 @@ module Aweplug
     class Strata
 
       SearchiskoOptions = Struct.new(:dcp_base_url, :cache, :log_faraday, :searchisko_warnings)
+
+      def initalize
+        FileUtils.mkdir_p '_tmp' unless File.exists? '_tmp'
+      end
 
       def search_then_index strata_url, cache, search_opts = {}, searchisko_opts = {}, logger = ::Logger.new('_tmp/faraday.log', 'daily')
         faraday = Aweplug::Helpers::FaradayHelper.default(strata_url, {logger: logger, cache: cache}) 

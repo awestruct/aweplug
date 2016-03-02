@@ -1,6 +1,7 @@
 require 'logger'
 require 'faraday'
 require 'faraday_middleware'
+require 'fileutils'
 
 module Aweplug
   module Helpers
@@ -16,7 +17,8 @@ module Aweplug
       #       :adapter - Faraday Adapter to use, :net_http by default.
       #
       # Returns a configured Faraday connection.
-      def self.default url, opts = {} 
+      def self.default url, opts = {}
+        FileUtils.mkdir_p '_tmp' unless File.exists? '_tmp'
         logger = opts[:logger] || Logger.new('_tmp/faraday.log', 'daily')
 
         conn = Faraday.new(url: url) do |builder|

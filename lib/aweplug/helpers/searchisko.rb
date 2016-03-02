@@ -4,6 +4,7 @@ require 'aweplug/cache'
 require 'logger'
 require 'json'
 require 'uri'
+require 'fileutils'
 
 # WARNING: monkey patching faraday
 # TODO: See if we can get the new refinements to work
@@ -66,7 +67,8 @@ module Aweplug
           if (opts[:logger]) 
             if (opts[:logger].is_a?(::Logger))
               builder.response :logger, @logger = opts[:logger]
-            else 
+            else
+              FileUtils.mkdir_p '_tmp' unless File.exists? '_tmp'
               builder.response :logger, @logger = ::Logger.new('_tmp/faraday.log', 'daily')
             end
           end

@@ -7,6 +7,7 @@ require 'tilt'
 require 'yaml'
 require 'faraday'
 require 'faraday_middleware'
+require 'fileutils'
 
 module Aweplug
   module Helpers
@@ -26,7 +27,8 @@ module Aweplug
             if (logger) 
               if (logger.is_a?(::Logger))
                 builder.response :logger, @logger = logger
-              else 
+              else
+                FileUtils.mkdir_p '_tmp' unless File.exists? '_tmp'
                 builder.response :logger, @logger = ::Logger.new('_tmp/faraday.log', 'daily')
               end
             end

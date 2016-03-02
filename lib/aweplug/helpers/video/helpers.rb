@@ -23,8 +23,7 @@ module Aweplug
               partial path, {:video => video, :parent => page}
             end
           rescue Exception => e
-            ExceptionUtil.log_building_error e, page.source_path
-            ExceptionUtil.marke_failed
+            ::Awestruct::ExceptionHelper.log_building_error e, page.source_path
           end
         end
 

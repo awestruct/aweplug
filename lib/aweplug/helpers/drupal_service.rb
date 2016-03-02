@@ -3,6 +3,7 @@ require 'aweplug/helpers/faraday'
 require 'logger'
 require 'json'
 require 'uri'
+require 'fileutils'
 
 module Aweplug
   module Helpers
@@ -28,6 +29,7 @@ module Aweplug
         unless [:drupal_user, :drupal_password].all? {|required| opts.key? required}
           raise 'Missing drupal credentials'
         end
+        FileUtils.mkdir_p '_tmp' unless File.exists? '_tmp'
         @logger = Logger.new('_tmp/drupal.log', 'daily')
         opts.merge({:no_cache => true, :logger => @logger})
         @faraday = Aweplug::Helpers::FaradayHelper.default(opts[:base_url], opts)

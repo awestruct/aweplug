@@ -17,8 +17,7 @@ require 'base64'
 require 'nokogiri'
 require 'aweplug/helpers/searchisko_social'
 require 'aweplug/cache'
-
-
+require 'fileutils' 
 
 module Aweplug
   module Extensions
@@ -185,7 +184,8 @@ module Aweplug
           @faraday ||= Faraday.new do |builder|
             if (site.log_faraday.is_a?(::Logger))
               builder.response :logger, @logger = site.log_faraday
-            else 
+            else
+              FileUtils.mkdir_p '_tmp' unless File.exists? '_tmp'
               builder.response :logger, @logger = ::Logger.new('_tmp/faraday.log', 'daily')
             end
             builder.request :url_encoded
