@@ -141,7 +141,7 @@ module Aweplug
         #
         # Returns nothing.
         def send_to_searchisko(searchisko, metadata, page, site, converted_html)
-          metadata[:searchisko_id] = Digest::SHA1.hexdigest(metadata[:title])[0..7]
+          metadata[:searchisko_id] = Digest::SHA1.hexdigest(metadata[:title] + metadata[:folder_name])[0..7]
           metadata[:searchisko_type] = 'jbossdeveloper_quickstart'
 
           searchisko_hash = {
