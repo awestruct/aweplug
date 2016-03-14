@@ -51,6 +51,9 @@ module Aweplug
         #                              option.
         #        :experimental       - Boolean to flag quickstarts as 
         #                              experimental.
+        #        :subdirectory       - Boolean to allow subdirectories to be included
+        #                              in rendering.
+        #
         # Returns the created extension.
         def initialize opts = {}
           required_keys = [:repository, :layout, :output_dir]
@@ -65,6 +68,7 @@ module Aweplug
           @push_to_searchisko = opts[:push_to_searchisko] || true
           @product = opts[:product]
           @experimental = opts[:experimental] || false
+          @subdirectory = opts[:subdirectory] || false
         end
 
         # Internal: Execute method required by awestruct. Called during the
@@ -76,15 +80,14 @@ module Aweplug
         def execute site
           cache = Aweplug::Cache.default site # default cache shouldn't matter here
 
-          Parallel.each(Dir["#{@repo}/*/README.md"], :in_threads => (site.build_threads || 0)) do |file|
-            searchisko = Aweplug::Helpers::Searchisko.new({:base_url => site.dcp_base_url, 
-                                                           :authenticate => true, 
-                                                           :searchisko_username => ENV['dcp_user'], 
-                                                           :searchisko_password => ENV['dcp_password'], 
+          Parallel.each(retrieve_readmes(), :in_threads => (site.build_threads || 0)) do |file|
+            searchisko = Aweplug::Helpers::Searchisko.new({:base_url => site.dcp_base_url,
+                                                           :authenticate => true,
+                                                           :searchisko_username => ENV['dcp_user'],
+                                                           :searchisko_password => ENV['dcp_password'],
                                                            :cache => cache,
                                                            :logger => site.log_faraday,
                                                            :searchisko_warnings => site.searchisko_warnings})
-            next if @excludes.include?(File.dirname(file))
 
             # Skip if the site already has this page
             output_path = File.join @output_dir, Pathname.new(file).relative_path_from(Pathname.new @repo).dirname, 'index.html' 
@@ -141,6 +144,9 @@ module Aweplug
         #
         # Returns nothing.
         def send_to_searchisko(searchisko, metadata, page, site, converted_html)
+          if(metadata[:title].nil?)
+            return
+          end
           metadata[:searchisko_id] = Digest::SHA1.hexdigest(metadata[:title] + metadata[:folder_name])[0..7]
           metadata[:searchisko_type] = 'jbossdeveloper_quickstart'
 
@@ -171,6 +177,34 @@ module Aweplug
                                     searchisko_hash.to_json)
         end
 
+        # Private: Extracts readmes from designated directories
+        #
+        # Returns an array of README filesf.
+        def retrieve_readmes()
+          if (@subdirectory)
+            path_to_readme = retrieve_files_utility(@repo,"README.md")
+          else
+            path_to_readme = Dir["#{@repo}/*/README.md"]
+          end
+          path_to_readme
+        end
+
+        def retrieve_files_utility(nested_file_path, regex_include=nil)
+          begin
+          file_list = []
+          regex_path = /(.*\/#{regex_include}$)/i
+            Find.find("#{nested_file_path}") do |path|
+              puts("#{@excludes} is the exclude for #{Pathname.new(path).dirname.to_s}")
+              @excludes.each() do |ex|
+                Find.prune if path.to_s.include?(ex)
+              end
+              file_list << path if path =~ regex_path
+            end
+          file_list
+          rescue
+            puts("#{nested_file_path} - either does not exist or does not contain an appropriate file parameter")
+          end
+        end
         # Private: Adds the contributing page of the repository to the site.
         #
         # Returns nothing.
@@ -224,7 +258,9 @@ module Aweplug
           metadata[:experimental] = @experimental
           metadata[:published] = DateTime.parse(metadata[:commits].first[:date]) unless metadata[:commits].empty?
 
-          folder_name = File.split(File.dirname(file)).last 
+          relativePath = Pathname.new(file).relative_path_from(Pathname.new(@repo))
+
+          folder_name = File.dirname(relativePath)
           metadata[:folder_name] =  folder_name unless folder_name.start_with?('_')
 
           unless metadata[:current_branch] == 'HEAD'
@@ -233,7 +269,10 @@ module Aweplug
             git_ref = metadata[:current_tag] || 'HEAD'
           end
           metadata[:download] = "#{metadata[:github_repo_url]}/archive/#{git_ref}.zip"
-          metadata[:browse] = "#{metadata[:github_repo_url]}/tree/#{metadata[:commits].first[:hash]}/#{metadata[:folder_name]}"
+          url_commit = metadata[:commits]
+          url_commit = commit_info(@repo, Pathname.new("#{@repo}/README.md")) if metadata[:commits].empty?
+
+          metadata[:browse] = "#{metadata[:github_repo_url]}/tree/#{url_commit.first[:hash]}/#{metadata[:folder_name]}"
           metadata[:scm] = 'github'
           metadata
         end
