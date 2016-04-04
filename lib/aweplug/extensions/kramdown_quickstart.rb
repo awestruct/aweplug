@@ -194,7 +194,6 @@ module Aweplug
           file_list = []
           regex_path = /(.*\/#{regex_include}$)/i
             Find.find("#{nested_file_path}") do |path|
-              puts("#{@excludes} is the exclude for #{Pathname.new(path).dirname.to_s}")
               @excludes.each() do |ex|
                 Find.prune if path.to_s.include?(ex)
               end
