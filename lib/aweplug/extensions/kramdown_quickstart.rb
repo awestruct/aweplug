@@ -150,13 +150,14 @@ module Aweplug
           metadata[:searchisko_id] = Digest::SHA1.hexdigest(metadata[:title] + metadata[:folder_name])[0..7]
           metadata[:searchisko_type] = 'jbossdeveloper_quickstart'
 
+          output_url = page.output_path.split('/index.html')[0]
           searchisko_hash = {
             :sys_title => metadata[:title], 
             :level => metadata[:level],
             :tags => metadata[:technologies],
             :sys_description => metadata[:summary],
-            :sys_content => converted_html, 
-            :sys_url_view => "#{site.base_url}#{site.ctx_root.nil? ? '/' : '/' + site.ctx_root + '/'}#{page.output_path}",
+            :sys_content => converted_html,
+            :sys_url_view => "#{site.base_url}#{site.ctx_root.nil? ? '/' : '/' + site.ctx_root + '/'}#{output_url}",
             :contributors => metadata[:contributors_email],
             :author => metadata[:author],
             :sys_created => metadata[:commits].collect { |c| DateTime.parse c[:date] }.last,

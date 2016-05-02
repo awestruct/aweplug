@@ -299,13 +299,15 @@ module Aweplug
           metadata[:searchisko_id] = metadata[:id]
           metadata[:searchisko_type] = 'jbossdeveloper_demo'
 
+
+          output_url = page.output_path.split('/index.html')[0]
           searchisko_hash = {
             :sys_title => metadata[:title], 
             :level => metadata[:level],
             :tags => metadata[:technologies],
             :sys_description => metadata[:summary],
-            :sys_content => converted_html, 
-            :sys_url_view => "#{site.base_url}#{site.ctx_root.nil? ? '/' : '/' + site.ctx_root + '/'}#{page.output_path}",
+            :sys_content => converted_html,
+            :sys_url_view => "#{site.base_url}#{site.ctx_root.nil? ? '/' : '/' + site.ctx_root + '/'}#{output_url}",
             :author => metadata[:author],
             :contributors => metadata[:contributors],
             :sys_created => metadata[:published],
