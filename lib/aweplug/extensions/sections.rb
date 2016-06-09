@@ -18,7 +18,7 @@ module Aweplug
       def execute site 
         Parallel.each(site.pages, :in_threads => (site.build_threads || 0)) do |page|
           if page.content_syntax =~ /^a(sc)?(ii)?(d(oc)?)?$/
-            sections = Asciidoctor.load(interpolated_content(page), {sectanchors: ''}).sections
+            sections = Asciidoctor.load(interpolated_content(page), {sectanchors: '', safe: :unsafe}).sections
             sections.each do |s|
               r = String.new
               s.blocks.each {|b| r << b.render}
