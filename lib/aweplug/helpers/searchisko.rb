@@ -36,7 +36,9 @@ module Aweplug
       def self.default site, cache_ttl
         cache = Aweplug::Cache.default site, cache_ttl
 
-        Aweplug::Helpers::Searchisko.new({:base_url => site.dcp_base_url, 
+        Aweplug::Helpers::Searchisko.new({:base_url => site.dcp_base_url,
+                                          :site_base_url => site.base_url,
+                                          :final_base_url => (site.final_base_url || nil),
                                           :authenticate => true, 
                                           :searchisko_username => ENV['dcp_user'], 
                                           :searchisko_password => ENV['dcp_password'], 
@@ -49,6 +51,8 @@ module Aweplug
       #
       # opts - symbol keyed hash. Current keys used:
       #        :base_url - base url for the searchisko instance
+      #        :site_base_url - base url for the web site
+      #        :final_base_url - final base url for the web site
       #        :authenticate - boolean flag for authentication
       #        :searchisko_username - Username to use for auth
       #        :searchisko_password - Password to use for auth
@@ -82,6 +86,8 @@ module Aweplug
         end
         @cache = opts[:cache]
         @searchisko_warnings = opts[:searchisko_warnings] if opts.has_key? :searchisko_warnings
+        @final_base_url = opts[:final_base_url]
+        @site_base_url = opts[:site_base_url]
       end
 
       # Public: Performs a GET normalization against the Searchisko API
@@ -187,11 +193,19 @@ module Aweplug
         resp = @faraday.post do |req|
           req.url "/v2/rest/" + path
           req.headers['Content-Type'] = 'application/json'
-          unless params.is_a? String
-            req.body = params.to_json
+          if params.is_a? String
+            payload = params
           else
-            req.body = params
+            payload = params.to_json
           end
+
+          # HACK: For use with production Drupal
+          if @final_base_url
+            payload.gsub!(@site_base_url, @final_base_url)
+          end
+
+          req.body = payload
+
           if @logger
             @logger.debug "request body: #{req.body}"
           end
