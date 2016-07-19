@@ -299,7 +299,9 @@ module Aweplug
           page_path = Pathname.new file
           page = site.engine.load_site_page file
           page.layout = @layout
-          page.output_path = File.join @output_dir, page_path.relative_path_from(Pathname.new @repo).dirname, 'index.html'
+          page.output_path = Pathname.new(File.join(@output_dir,
+                                                    page_path.relative_path_from(Pathname.new @repo).dirname,
+                                                    'index.html')).cleanpath
           site.pages << page
           page
         end
