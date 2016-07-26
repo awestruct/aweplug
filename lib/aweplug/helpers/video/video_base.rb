@@ -6,16 +6,9 @@ module Aweplug
       class VideoBase
 
         def initialize(video, site, default_ttl = 86400) # A day seems good for videos
-          cache = Aweplug::Cache.default site, default_ttl
           @site = site
           @video = video
-          @searchisko = Aweplug::Helpers::Searchisko.new({:base_url => @site.dcp_base_url,
-                                                          :authenticate => true,
-                                                          :searchisko_username => ENV['dcp_user'],
-                                                          :searchisko_password => ENV['dcp_password'],
-                                                          :cache => cache,
-                                                          :logger => @site.log_faraday,
-                                                          :searchisko_warnings => @site.searchisko_warnings})
+          @searchisko = Aweplug::Helpers::Searchisko.default site, default_ttl
         end
 
         # Create the basic methods

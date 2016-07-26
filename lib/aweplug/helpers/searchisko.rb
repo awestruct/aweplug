@@ -47,7 +47,7 @@ module Aweplug
                                           :searchisko_warnings => site.searchisko_warnings})
       end
 
-      # Public: Initialization of the object, keeps a Faraday connection cached.
+      # Private: Initialization of the object, keeps a Faraday connection cached.
       #
       # opts - symbol keyed hash. Current keys used:
       #        :base_url - base url for the searchisko instance
@@ -238,6 +238,8 @@ Params: #{params}. Response body: #{resp.body}"
           end
         end
       end
+
+      private :initialize
     end
   end
 end

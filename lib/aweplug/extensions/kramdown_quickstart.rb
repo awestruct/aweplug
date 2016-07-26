@@ -81,13 +81,7 @@ module Aweplug
           cache = Aweplug::Cache.default site # default cache shouldn't matter here
 
           Parallel.each(retrieve_readmes(), :in_threads => (site.build_threads || 0)) do |file|
-            searchisko = Aweplug::Helpers::Searchisko.new({:base_url => site.dcp_base_url,
-                                                           :authenticate => true,
-                                                           :searchisko_username => ENV['dcp_user'],
-                                                           :searchisko_password => ENV['dcp_password'],
-                                                           :cache => cache,
-                                                           :logger => site.log_faraday,
-                                                           :searchisko_warnings => site.searchisko_warnings})
+            searchisko = Aweplug::Helpers::Searchisko.default site, 360
 
             # Skip if the site already has this page
             output_path = File.join @output_dir, Pathname.new(file).relative_path_from(Pathname.new @repo).dirname, 'index.html' 

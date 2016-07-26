@@ -145,13 +145,7 @@ module Aweplug
 
             # Not sure if it's better to do this once per class, 
             # once per site, or once per invocation
-            searchisko = Aweplug::Helpers::Searchisko.new({:base_url => site.dcp_base_url, 
-                                                          :authenticate => true, 
-                                                          :searchisko_username => ENV['dcp_user'], 
-                                                          :searchisko_password => ENV['dcp_password'], 
-                                                          :cache => @cache,
-                                                          :logger => site.log_faraday,
-                                                          :searchisko_warnings => site.searchisko_warnings})
+            searchisko = Aweplug::Helpers::Searchisko.default site, 360
 
             page = add_to_site site, path, metadata[:converted]
 

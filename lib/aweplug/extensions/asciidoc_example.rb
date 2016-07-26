@@ -82,14 +82,8 @@ module Aweplug
       #
       # Returns nothing.
       def execute site
-        cache = Aweplug::Cache.default site # As these are just PUT/POST requests the cache doesn't really matter
-        searchisko = Aweplug::Helpers::Searchisko.new({:base_url => site.dcp_base_url, 
-                                                       :authenticate => true, 
-                                                       :searchisko_username => ENV['dcp_user'], 
-                                                       :searchisko_password => ENV['dcp_password'], 
-                                                       :cache => cache,
-                                                       :logger => site.log_faraday,
-                                                       :searchisko_warnings => site.searchisko_warnings})
+        searchisko = Aweplug::Helpers::Searchisko.default site, 360
+
         Find.find @directory do |path|
           Find.prune if File.directory?(path) && !@recurse_subdirectories
 

@@ -41,13 +41,7 @@ module Aweplug
         def send_video_to_searchisko(video, site, product, push_to_searchisko, cache)
           unless (payload = video.searchisko_payload).nil?
             unless  !push_to_searchisko || site.profile =~ /development/
-              searchisko = Aweplug::Helpers::Searchisko.new({:base_url => site.dcp_base_url, 
-                                                              :authenticate => true, 
-                                                              :searchisko_username => ENV['dcp_user'], 
-                                                              :searchisko_password => ENV['dcp_password'], 
-                                                              :cache => cache,
-                                                              :logger => site.log_faraday,
-                                                              :searchisko_warnings => site.searchisko_warnings})
+              searchisko = Aweplug::Helpers::Searchisko.default site, 360
               payload = payload.merge({:target_product => product}) unless product.nil?
               searchisko.push_content("jbossdeveloper_#{video.provider}", video.id, payload.to_json)
             end 
