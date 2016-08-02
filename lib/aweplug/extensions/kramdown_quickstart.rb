@@ -84,7 +84,7 @@ module Aweplug
             searchisko = Aweplug::Helpers::Searchisko.default site, 360
 
             # Skip if the site already has this page
-            output_path = File.join @output_dir, Pathname.new(file).relative_path_from(Pathname.new @repo).dirname, 'index.html' 
+            output_path = Pathname.new(File.join(@output_dir, Pathname.new(file).relative_path_from(Pathname.new @repo).dirname, 'index.html')).cleanpath 
             next if site.pages.find {|p| p.output_path == output_path}
 
             page = add_to_site site, file
@@ -209,7 +209,9 @@ module Aweplug
 
             # Little bit of C&P to change the  output path, probably a better way
             page_path = Pathname.new "#{@repo}/CONTRIBUTING.md"
-            contribute.output_path = File.join @output_dir, page_path.relative_path_from(Pathname.new @repo).dirname, 'contributing', 'index.html'
+            contribute.output_path = Pathname.new(File.join(@output_dir, 
+                                                            page_path.relative_path_from(Pathname.new @repo).dirname, 
+                                                            'contributing', 'index.html')).cleanpath
             contribute.send 'metadata=', metadata
           end
         end
@@ -309,7 +311,7 @@ module Aweplug
         def add_image_to_site(site, image)
           page_path = Pathname.new image
           page = site.engine.load_site_page image
-          page.output_path = File.join @output_dir, page_path.relative_path_from(Pathname.new @repo).dirname, File.basename(image)
+          page.output_path = Pathname.new(File.join @output_dir, page_path.relative_path_from(Pathname.new @repo).dirname, File.basename(image)).cleanpath
           site.pages << page
         end
 
