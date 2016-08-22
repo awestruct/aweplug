@@ -121,7 +121,7 @@ module Aweplug
           {
             :sys_title => book['volumeInfo']['title'],
             :sys_description => description,
-            :sys_url_view => book['volumeInfo']['canonicalVolumeLink'],
+            :sys_url_view => book['volumeInfo']['infoLink'],
             :authors => book['volumeInfo']['authors'],
             :thumbnail => thumbnail.to_s,
             :isbn => isbn,
