@@ -144,7 +144,7 @@ module Aweplug
             hash
           end
 
-          unless !@push_to_searchisko || site.profile =~ /development/
+          if @push_to_searchisko
             searchisko.push_content(metadata[:searchisko_type],
                                     metadata[:searchisko_id],
                                     searchisko_hash.to_json)

@@ -149,7 +149,7 @@ module Aweplug
 
             page = add_to_site site, path, metadata[:converted]
 
-            unless !@push_to_searchisko || site.profile =~ /development/
+            if @push_to_searchisko
               send_to_searchisko(searchisko, metadata, page, site, metadata[:converted])
             end
             

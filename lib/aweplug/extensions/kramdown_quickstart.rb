@@ -106,7 +106,7 @@ module Aweplug
               end
             end 
 
-            unless !@push_to_searchisko || site.profile =~ /development/
+            if @push_to_searchisko
               send_to_searchisko(searchisko, metadata, page, site, converted_html)
             end
 

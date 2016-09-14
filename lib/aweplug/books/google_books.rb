@@ -139,7 +139,7 @@ module Aweplug
       end
 
       def send_to_searchisko book
-        unless !@push_to_searchisko || @site.profile =~ /development/
+        if @push_to_searchisko
           @searchisko.push_content('jbossdeveloper_book', 
                                  book[:isbn], 
                                  book.reject {|k, v| k == :normalized_authors }.to_json)
