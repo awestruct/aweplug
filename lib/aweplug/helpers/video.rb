@@ -43,8 +43,6 @@ module Aweplug
           videos[uri_key].add_target_product product
         else
           @youtube ||= Aweplug::Helpers::Video::YouTube.new(site)
-          @vimeo ||= Aweplug::Helpers::Video::Vimeo.new(site)
-          videos[uri_key] = @vimeo.add(url, product: product, push_to_searchisko: push_to_searchisko)
 
           youtube_videos = @youtube.add(url, product: product, push_to_searchisko: push_to_searchisko)
           if youtube_videos
