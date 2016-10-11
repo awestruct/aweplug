@@ -65,7 +65,7 @@ module Aweplug
           @layout = opts[:layout]
           @site_variable = opts[:site_variable] || opts[:output_dir]
           @excludes = opts[:excludes] || []
-          @push_to_searchisko = opts[:push_to_searchisko] || true
+          @push_to_searchisko = opts[:push_to_searchisko].nil? ? true : opts[:push_to_searchisko]
           @product = opts[:product]
           @experimental = opts[:experimental] || false
           @subdirectory = opts[:subdirectory] || false
