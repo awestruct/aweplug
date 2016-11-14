@@ -52,7 +52,7 @@ module Aweplug
         end
 
         def embed color, width, height
-          %Q{<div widescreen vimeo><iframe src="//player.vimeo.com/video/#{id}?title=0&byline=0&portrait=0&badge=0&color=#{color}" width="#{width}" height="#{height}" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe></div>}
+          %Q{<div widescreen vimeo><iframe src="https://player.vimeo.com/video/#{id}?title=0&byline=0&portrait=0&badge=0&color=#{color}" width="#{width}" height="#{height}" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe></div>}
         end
 
         def add_target_product product
