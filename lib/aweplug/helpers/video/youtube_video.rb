@@ -39,7 +39,7 @@ module Aweplug
         end
 
         def embed color, width, height
-          %Q{<iframe id="ytplayer" type="text/html" width="#{width}" height="#{height}" src="//www.youtube.com/embed/#{id}?&origin=#{@site.base_url}&color=#{color}&modestbranding=1" frameborder="0"></iframe>}
+          %Q{<iframe id="ytplayer" type="text/html" width="#{width}" height="#{height}" src="https://www.youtube.com/embed/#{id}?&origin=#{@site.base_url}&color=#{color}&modestbranding=1" frameborder="0"></iframe>}
         end
 
         def add_target_product product
